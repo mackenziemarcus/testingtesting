@@ -1,0 +1,167 @@
+---
+title: "markdown setup"
+author: "Mackenzie Marcus"
+date: "2023-01-23"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+```
+
+# 4.2 Packages
+
+```{r}
+# penguins data test
+data("penguins")
+class(penguins)
+str(penguins)
+
+class(penguins$species)
+str(penguins$species)
+
+# myList
+myList = list("apple", 1993, FALSE, penguins)
+str(myList)
+names(myList) <- c("fruit", "year", "logic", "data")
+names(myList)
+```
+
+# 6.3 notes
+
+```{r}
+#indexing data frames
+# dataframe[row(s), columns()]
+
+penguins[1:5, 2]
+penguins[1:5, "island"]
+penguins[1, 1:5]
+penguins[1:5, c("species","sex")]
+penguins[penguins$sex=='female',]
+
+# $ for a single column
+penguins$species
+```
+
+# 6.3.1 Exercises
+
+## 1. error in syntax
+
+## 2. length spelled incorrectly
+
+## 3. missing \$ function to extract elements from the data frame
+
+```{r, practice}
+# 1.error in syntax
+myList = ('Fruit')
+
+# 2. length spelled incorrectly
+penguins$flipper_length_mm
+
+# 3. missing $ function to extract elements from the data frame 
+penguins[penguins$island=='Dream',]
+
+```
+
+## Tidyverse and dplyr notes
+
+```{r}
+# equal to
+filter(penguins, species == "Adelie")
+
+# not equal to
+filter(penguins, species != "Adelie")
+
+# Dream and Torgersen islands and is not bill_length_mm 
+filter(penguins, island %in% c("Dream", "Torgersen") & !is.na(bill_length_mm))
+
+# Select two specific variables
+select(penguins, species, sex)
+
+# Select a range of variables
+select(penguins, species:flipper_length_mm)
+
+# Rename columns within select
+select(penguins, genus = species, island)
+
+# Select column variables that are recorded in mm
+select(penguins, contains("mm"))
+
+# mutate function
+
+# New variable that calculates bill length in cm
+mutate(penguins, bill_length_cm = bill_length_mm/10)
+
+# mutate based on conditional statements
+mutate(penguins, species_sex = if_else(sex == 'male', paste0(species,"_m"), paste0(species, "_f")))
+```
+
+## 6.3.2 Exercises
+
+```{r}
+
+# 1 Reorder the variables in penguins so that year is the first column followed by the rest (Hint: look into the use of everything()).
+
+penguins_yearfirst = 
+    penguins %>% 
+    select(year, everything())
+
+# 2 Create a new column called ‘size_group’ where individuals with body mass greater than the overall average are called ‘large’ and those smaller are called ‘small’.
+
+penguins_sizegroup = 
+  penguins %>% 
+    mutate(size_group = 
+             case_when(
+             body_mass_g > 4201.754 ~ 'large', 
+             body_mass_g <  4201.754 ~ 'small'), 
+              )
+mean(penguins$body_mass_g, na.rm = T)
+
+# 3 Find out which year for each species were individuals on average the largest according to body mass.
+
+Avg_mass_byspecies = penguins %>% 
+    group_by(year, species) %>% 
+    dplyr::summarise(mean = mean(body_mass_g, na.rm=T))
+
+# 4 You want to filter data for years that are not in a vector of given years, but this code doesn’t work. Tweak it so that it does. (Yes, you could just filter year to equal 2007 in this case but there is a trouble-shooting lessons here).
+
+penguins %>% 
+ filter(!year %in% c("2008", "2009"))
+
+```
+
+# 7. visualize
+
+```{r}
+# 1 Make a barplot showing the average flipper length for each species. Can not troubleshoot vertical line. 
+
+ggplot(penguins) +
+  geom_histogram(aes(x = flipper_length_mm, fill=species), 
+    alpha = .6, position = "identity", bins = 30) +    
+    scale_fill_manual(values = c("lightblue", "lightgreen","plum") +   geom_vline(xintercept = 189.9536) + 
+    geom_vline(xintercept = 195.8235) + 
+    geom_vline(xintercept = 217.1870))
+  
+meanflipper =
+   penguins %>%
+   group_by(species) %>%
+   dplyr::summarise(groupmean=mean(flipper_length_mm, na.rm=TRUE))
+    
+
+# 2 Make a scatter plot of bill length compared to bill depth but only for observations on the Dream island.
+
+Dreamonly = penguins %>% 
+  filter(island == "Dream")
+
+ggplot(Dreamonly) +
+    geom_point(mapping = aes(x = bill_length_mm, 
+    y = bill_depth_mm, color = species))
+
+```
+
+```{r}
+```
